@@ -136,6 +136,17 @@ func OpenFile(r io.ReaderAt, size int64, options ...FileOption) (*File, error) {
 	} else {
 		f.schema = NewSchema(f.root.Name(), f.root)
 	}
+
+	ordinalsSum := int16(0)
+	for i := range f.metadata.RowGroups {
+		ordinalsSum += f.metadata.RowGroups[i].Ordinal
+	}
+	if ordinalsSum == 0 {
+		for i := range f.metadata.RowGroups {
+			f.metadata.RowGroups[i].Ordinal = int16(i)
+		}
+	}
+
 	columns := makeLeafColumns(f.root)
 	rowGroups := makeFileRowGroups(f, columns)
 	f.rowGroups = makeRowGroups(rowGroups)
